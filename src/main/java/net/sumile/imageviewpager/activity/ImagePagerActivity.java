@@ -38,6 +38,7 @@ public class ImagePagerActivity extends FragmentActivity {
     private TextView yes;
     private CheckBox choose;
     private int currentPage;
+    ArrayList<String> selected;
 
     public static void startActivity(Context context, int index, ArrayList<String> urls) {
         Intent intent = new Intent(context, ImagePagerActivity.class);
@@ -62,10 +63,11 @@ public class ImagePagerActivity extends FragmentActivity {
     /**
      * 显示一个包含头部和尾部的选择器，初始默认全选中（浏览）
      */
-    public static void startActivityWithHF_NotSelected(Context context, int index, ArrayList<String> urls, OnSelectedListener callBack) {
+    public static void startActivityWithHF_NotSelected(Context context, int index, ArrayList<String> urls, ArrayList<String> drr, OnSelectedListener callBack) {
         Intent intent = new Intent(context, ImagePagerActivity.class);
         intent.putExtra(STATE_POSITION, index);
         intent.putExtra(EXTRA_IMAGE_URLS, urls);
+        intent.putExtra(EXTRA_IMAGE_URLS_SELECTED, drr);
         intent.putExtra(TYPE, 2);
         mCallBack = callBack;
         context.startActivity(intent);
@@ -74,6 +76,7 @@ public class ImagePagerActivity extends FragmentActivity {
     public static final String STATE_POSITION = "STATE_POSITION";
     public static final String EXTRA_IMAGE_INDEX = "image_index";
     public static final String EXTRA_IMAGE_URLS = "image_urls";
+    public static final String EXTRA_IMAGE_URLS_SELECTED = "EXTRA_IMAGE_URLS_SELECTED";
     ArrayList<Boolean> statusList = new ArrayList<>();
 
     private void createStatusList(ArrayList<String> dataList) {
@@ -86,6 +89,12 @@ public class ImagePagerActivity extends FragmentActivity {
         for (int i = 0; i < dataList.size(); i++) {
             statusList.add(false);
         }
+        for (String str : selected) {
+            if (dataList.contains(str)) {
+                int index = dataList.indexOf(str);
+                statusList.set(index, true);
+            }
+        }
     }
 
     @Override
@@ -93,7 +102,7 @@ public class ImagePagerActivity extends FragmentActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.image_detail_pager);
         initView();
-        pagerPosition = getIntent().getIntExtra(EXTRA_IMAGE_INDEX, 0);
+        pagerPosition = getIntent().getIntExtra(STATE_POSITION, 0);
         currentPage = pagerPosition;
         final ArrayList<String> urls = getIntent().getStringArrayListExtra(EXTRA_IMAGE_URLS);
         mPager = (HackyViewPager) findViewById(R.id.pager);
@@ -133,6 +142,7 @@ public class ImagePagerActivity extends FragmentActivity {
                 }
             });
         } else if (type == 2) {
+            selected = getIntent().getStringArrayListExtra(EXTRA_IMAGE_URLS_SELECTED);
             createStatusListFalse(urls);
             footer.setVisibility(View.VISIBLE);
             header.setVisibility(View.VISIBLE);
