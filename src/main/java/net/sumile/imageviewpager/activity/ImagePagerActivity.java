@@ -13,6 +13,7 @@ import android.widget.CheckBox;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import net.sumile.imageviewpager.R;
 import net.sumile.imageviewpager.fragments.ImageDetailFragment;
@@ -25,20 +26,40 @@ import java.util.ArrayList;
  */
 public class ImagePagerActivity extends FragmentActivity {
 
+    private static final String TYPE = "TYPE";
+    public static final String MAX_PICS = "MAX_PICS";
+    public static final String STATE_POSITION = "STATE_POSITION";
+    public static final String EXTRA_IMAGE_INDEX = "image_index";
+    public static final String EXTRA_IMAGE_URLS = "image_urls";
+    public static final String EXTRA_IMAGE_URLS_SELECTED = "EXTRA_IMAGE_URLS_SELECTED";
+
     private static OnSelectedListener mCallBack;
     private HackyViewPager mPager;
+    //要显示的position
     private int pagerPosition;
+    //图片下方显示的页数
     private TextView indicator;
+    //是全部选择为true的还是根据传递过来的列表来选择性的标记为true
     private int type = 0;
-    private static final String TYPE = "TYPE";
+    //头部和尾部，用来控制是否显示
     private RelativeLayout header;
     private RelativeLayout footer;
+    //顶部的返回按钮
     private ImageView back;
+    //返回按钮右边的用来标志当前正在查看的图片的以及总图片个数的view
     private TextView count;
+    //右侧的确定按钮
     private TextView yes;
+    //footer中的选择框，用来选择当前图片是否要添加到列表中
     private CheckBox choose;
+    //当前正在展示的页面的position
     private int currentPage;
+    //当前已经选择的列表
     ArrayList<String> selected;
+    //当前页面可以选择到的最多的图片
+    private int maxPics = 0;
+    //当前页面选择的图片的数量
+    private int currentPicCount = 0;
 
     public static void startActivity(Context context, int index, ArrayList<String> urls) {
         Intent intent = new Intent(context, ImagePagerActivity.class);
@@ -61,22 +82,19 @@ public class ImagePagerActivity extends FragmentActivity {
     }
 
     /**
-     * 显示一个包含头部和尾部的选择器，初始默认全选中（浏览）
+     * 显示一个包含头部和尾部的选择器，根据传递过来的列表来具体选中
      */
-    public static void startActivityWithHF_NotSelected(Context context, int index, ArrayList<String> urls, ArrayList<String> drr, OnSelectedListener callBack) {
+    public static void startActivityWithHF_NotSelected(Context context, int index, ArrayList<String> urls, ArrayList<String> drr, int maxPics, OnSelectedListener callBack) {
         Intent intent = new Intent(context, ImagePagerActivity.class);
         intent.putExtra(STATE_POSITION, index);
         intent.putExtra(EXTRA_IMAGE_URLS, urls);
         intent.putExtra(EXTRA_IMAGE_URLS_SELECTED, drr);
         intent.putExtra(TYPE, 2);
+        intent.putExtra(MAX_PICS, maxPics);
         mCallBack = callBack;
         context.startActivity(intent);
     }
 
-    public static final String STATE_POSITION = "STATE_POSITION";
-    public static final String EXTRA_IMAGE_INDEX = "image_index";
-    public static final String EXTRA_IMAGE_URLS = "image_urls";
-    public static final String EXTRA_IMAGE_URLS_SELECTED = "EXTRA_IMAGE_URLS_SELECTED";
     ArrayList<Boolean> statusList = new ArrayList<>();
 
     private void createStatusList(ArrayList<String> dataList) {
@@ -112,6 +130,7 @@ public class ImagePagerActivity extends FragmentActivity {
         type = getIntent().getIntExtra(TYPE, 0);
         if (type == 1) {
             createStatusList(urls);
+            maxPics = urls.size();
             footer.setVisibility(View.VISIBLE);
             header.setVisibility(View.VISIBLE);
             indicator.setVisibility(View.GONE);
@@ -143,6 +162,8 @@ public class ImagePagerActivity extends FragmentActivity {
             });
         } else if (type == 2) {
             selected = getIntent().getStringArrayListExtra(EXTRA_IMAGE_URLS_SELECTED);
+            currentPicCount = selected.size();
+            maxPics = getIntent().getIntExtra(MAX_PICS, 0);
             createStatusListFalse(urls);
             footer.setVisibility(View.VISIBLE);
             header.setVisibility(View.VISIBLE);
@@ -153,8 +174,21 @@ public class ImagePagerActivity extends FragmentActivity {
                 public void onClick(View v) {
                     boolean isChecked = choose.isChecked();
                     if (mCallBack != null) {
+                        if (isChecked) {
+                            //当前这个是选择的，判断是否大于最大的数量
+                            if (++currentPicCount > maxPics) {
+                                choose.setChecked(false);
+                                currentPicCount--;
+                                Toast.makeText(ImagePagerActivity.this, "最多选" + maxPics + "张", Toast.LENGTH_SHORT).show();
+                                return;
+                            } else {
+                            }
+                        } else {
+                            //当前这个是未选择状态，一般情况下是大于0的
+                            currentPicCount--;
+                        }
                         statusList.set(currentPage, isChecked);
-                        yes.setText("确定(" + getSelectedCount() + "/" + urls.size() + ")");
+                        yes.setText("确定(" + currentPicCount + "/" + maxPics + ")");
                         mCallBack.onSelected(isChecked, urls.get(currentPage));
                     }
                 }
@@ -203,7 +237,11 @@ public class ImagePagerActivity extends FragmentActivity {
                         choose.setChecked(false);
                     }
                     count.setText((currentPage + 1) + "/" + urls.size());
-                    yes.setText("确定(" + getSelectedCount() + "/" + urls.size() + ")");
+                    if (type == 1) {
+                        yes.setText("确定(" + getSelectedCount() + "/" + urls.size() + ")");
+                    } else if (type == 2) {
+                        yes.setText("确定(" + currentPicCount + "/" + maxPics + ")");
+                    }
                 } else {
                     CharSequence text = getString(R.string.viewpager_indicator, arg0 + 1, mPager.getAdapter().getCount());
                     indicator.setText(text);
