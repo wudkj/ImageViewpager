@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <style name="MyCheck_Box" parent="@android:style/Widget.Holo.Light.CompoundButton.CheckBox">
-        <item name="android:button">@drawable/checkbox_style</item>
-        <item name="android:paddingLeft">5.0dip</item>
-        <item name="android:textSize">14sp</item>
+    <style name="CustomCheckboxTheme" parent="@android:style/Widget.CompoundButton.CheckBox">
+        <item name="android:background">@drawable/checkbox_style</item>
+        <item name="android:button">@null</item>
     </style>
 </resources>
