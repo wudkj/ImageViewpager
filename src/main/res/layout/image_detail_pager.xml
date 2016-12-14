@@ -60,6 +60,12 @@
         android:layout_above="@+id/footer"
         android:layout_below="@id/header">
 
+        <net.sumile.imageviewpager.views.HackyViewPager
+            android:id="@+id/pager"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            />
+
         <TextView
             android:id="@+id/indicator"
             android:layout_width="match_parent"
@@ -67,14 +73,10 @@
             android:layout_gravity="bottom"
             android:background="@android:color/transparent"
             android:gravity="center"
+            android:text=""
+            android:layout_marginBottom="10dp"
             android:textColor="@android:color/white"
             android:textSize="18sp"/>
-
-        <net.sumile.imageviewpager.views.HackyViewPager
-            android:id="@+id/pager"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            />
     </FrameLayout>
 
     <RelativeLayout
